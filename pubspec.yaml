@@ -1,5 +1,5 @@
 name: steppify
-description: "A new Flutter project."
+description: 'Steppify is a mobile application that helps users to track their steps and motivate them to move more.'
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,8 +36,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flutter_riverpod: ^2.5.1
-  intl: ^0.19.0
+  flutter_riverpod: ^3.0.3
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -55,13 +55,13 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  generate: true
   assets:
-    - lib/src/l10n/
+    - lib/l10n/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

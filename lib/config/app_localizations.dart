@@ -10,10 +10,7 @@ class AppLocalizations {
   final Locale locale;
   late final Map<String, String> _localizedStrings;
 
-  static const List<Locale> supportedLocales = [
-    Locale('en'),
-    Locale('ko'),
-  ];
+  static const List<Locale> supportedLocales = [Locale('en'), Locale('ko')];
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
@@ -27,14 +24,14 @@ class AppLocalizations {
         .where((entry) => !entry.key.startsWith('@'))
         .map((entry) => MapEntry(entry.key, entry.value.toString()))
         .fold(<String, String>{}, (acc, entry) {
-      acc[entry.key] = entry.value;
-      return acc;
-    });
+          acc[entry.key] = entry.value;
+          return acc;
+        });
     return localization;
   }
 
   static String _localePath(Locale locale) =>
-      'lib/src/l10n/intl_${locale.languageCode}.arb';
+      'lib/l10n/app_${locale.languageCode}.arb';
 
   static AppLocalizations of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
@@ -52,13 +49,13 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLocales
-        .any((supported) => supported.languageCode == locale.languageCode);
+    return AppLocalizations.supportedLocales.any(
+      (supported) => supported.languageCode == locale.languageCode,
+    );
   }
 
   @override
-  Future<AppLocalizations> load(Locale locale) =>
-      AppLocalizations.load(locale);
+  Future<AppLocalizations> load(Locale locale) => AppLocalizations.load(locale);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
