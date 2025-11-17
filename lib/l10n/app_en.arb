@@ -2,7 +2,7 @@
   "@@locale": "en",
   "title": "Steppify",
   "greeting": "Welcome to Steppify",
-    "settings": "Settings",
+  "settings": "Settings",
   "theme": "Dark Theme",
   "language": "Language"
 }

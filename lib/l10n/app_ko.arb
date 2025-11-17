@@ -2,7 +2,7 @@
   "@@locale": "ko",
   "title": "스텝피파이",
   "greeting": "스텝피파이에 오신 것을 환영합니다",
-    "settings": "설정",
+  "settings": "설정",
   "theme": "다크 테마",
   "language": "언어"
 }
