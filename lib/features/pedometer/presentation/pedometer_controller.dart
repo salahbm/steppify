@@ -1,81 +1,119 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:steppify/features/pedometer/data/pedometer_provider.dart';
-import '../domain/pedometer_usecase.dart';
+
+import '../data/pedometer_provider.dart';
+import '../data/steps_repo.dart';
 import 'pedometer_state.dart';
-import '../pedometer.dart';
 
 class PedometerController extends Notifier<PedometerState> {
-  late final PedometerUseCase _useCase;
-  StreamSubscription<int>? _subscription;
+  PedometerController();
+
+  late final StepsRepo _repo;
+  StreamSubscription<int>? _stepsSubscription;
 
   @override
   PedometerState build() {
-    _useCase = ref.read(pedometerUseCaseProvider);
-    ref.onDispose(() => _subscription?.cancel());
-    Future.microtask(initialize);
+    _repo = ref.read(stepsRepoProvider);
+    ref.onDispose(_dispose);
+    Future<void>.microtask(_initialize);
     return PedometerState.initial();
   }
 
-  Future<void> initialize() async {
-    if (state.isInitialized) return;
-    state = state.copyWith(isInitialized: true, isLoading: true);
+  Future<void> _initialize() async {
+    await _ensureSupport();
+  }
 
-    final permission = await _useCase.requestPermission();
-    if (!permission) {
+  Future<void> _ensureSupport() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    final supported = await _repo.isSupported();
+    if (!supported) {
       state = state.copyWith(
-        hasError: true,
-        permissionGranted: false,
+        isSupported: false,
         isLoading: false,
-        errorMessage: 'Permission not granted.',
+        errorMessage: 'Step tracking is not supported on this device.',
       );
       return;
     }
 
-    state = state.copyWith(permissionGranted: true);
-    await startTracking();
+    await _ensurePermission();
   }
 
-  Future<void> startTracking() async {
-    await _useCase.startTracking();
-    _subscription = _useCase.stepStream.listen((steps) {
-      final quote = _useCase.motivationalQuote(steps);
+  Future<void> _ensurePermission() async {
+    var hasPermission = await _repo.hasPermission();
+    if (!hasPermission) {
+      hasPermission = await _repo.requestPermission();
+    }
+
+    if (!hasPermission) {
       state = state.copyWith(
-        entity: state.entity.copyWith(
-          totalSteps: steps,
-          motivationalQuote: quote,
-          lastUpdated: DateTime.now(),
-          isTracking: true,
-        ),
-        hasError: false,
+        hasPermission: false,
+        isLoading: false,
+        errorMessage: 'We need permission to read today\'s steps.',
+      );
+      return;
+    }
+
+    state = state.copyWith(hasPermission: true, clearError: true);
+    await _hydrateSteps();
+    _listenToSteps();
+  }
+
+  Future<void> requestPermission() => _ensurePermission();
+
+  Future<void> refreshSteps() async {
+    if (!state.hasPermission) {
+      state = state.copyWith(
+        errorMessage: 'Grant permissions to refresh today\'s steps.',
+      );
+      return;
+    }
+
+    await _hydrateSteps();
+  }
+
+  Future<void> _hydrateSteps() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final steps = await _repo.fetchTodaySteps();
+      state = state.copyWith(
+        totalSteps: steps,
+        isLoading: false,
+        lastUpdated: DateTime.now(),
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: error.toString(),
+      );
+    }
+  }
+
+  void _listenToSteps() {
+    _stepsSubscription?.cancel();
+    _stepsSubscription = _repo.watchSteps().listen((steps) {
+      state = state.copyWith(
+        totalSteps: steps,
+        lastUpdated: DateTime.now(),
+        clearError: true,
+        isLoading: false,
+      );
+    }, onError: (Object error, StackTrace stackTrace) {
+      state = state.copyWith(
+        errorMessage: error.toString(),
         isLoading: false,
       );
     });
   }
 
-  Future<void> stopTracking() async {
-    await _subscription?.cancel();
-    await _useCase.stopTracking();
-    state = state.copyWith(entity: state.entity.copyWith(isTracking: false));
-  }
-
-  Future<void> toggleBackgroundTracking(bool enable) async {
-    final enabled = await _useCase.toggleBackgroundTracking(enable);
-    state = state.copyWith(
-      entity: state.entity.copyWith(backgroundTrackingEnabled: enabled),
-    );
-  }
-
-  Future<void> refreshQuote() async {
-    final steps = state.entity.totalSteps;
-    final quote = _useCase.motivationalQuote(steps);
-    state = state.copyWith(
-      entity: state.entity.copyWith(motivationalQuote: quote),
-    );
+  void _dispose() {
+    _stepsSubscription?.cancel();
   }
 }
 
 final pedometerControllerProvider =
     NotifierProvider<PedometerController, PedometerState>(
-      () => PedometerController(),
-    );
+  PedometerController.new,
+);

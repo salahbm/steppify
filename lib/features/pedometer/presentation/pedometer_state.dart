@@ -1,51 +1,55 @@
-import '../domain/pedometer_entity.dart';
-
 class PedometerState {
   const PedometerState({
-    required this.entity,
-    required this.permissionGranted,
+    required this.totalSteps,
+    required this.goal,
     required this.isLoading,
-    required this.hasError,
-    required this.isInitialized,
+    required this.hasPermission,
+    required this.isSupported,
     this.errorMessage,
+    this.lastUpdated,
   });
 
-  final PedometerEntity entity;
-  final bool permissionGranted;
+  final int totalSteps;
+  final int goal;
   final bool isLoading;
-  final bool hasError;
-  final bool isInitialized;
+  final bool hasPermission;
+  final bool isSupported;
   final String? errorMessage;
+  final DateTime? lastUpdated;
+
+  double get progress => goal == 0 ? 0 : (totalSteps / goal).clamp(0, 1).toDouble();
 
   PedometerState copyWith({
-    PedometerEntity? entity,
-    bool? permissionGranted,
+    int? totalSteps,
+    int? goal,
     bool? isLoading,
-    bool? hasError,
-    bool? isInitialized,
+    bool? hasPermission,
+    bool? isSupported,
     String? errorMessage,
-    bool resetErrorMessage = false,
+    DateTime? lastUpdated,
+    bool clearError = false,
   }) {
     return PedometerState(
-      entity: entity ?? this.entity,
-      permissionGranted: permissionGranted ?? this.permissionGranted,
+      totalSteps: totalSteps ?? this.totalSteps,
+      goal: goal ?? this.goal,
       isLoading: isLoading ?? this.isLoading,
-      hasError: hasError ?? this.hasError,
-      isInitialized: isInitialized ?? this.isInitialized,
-      errorMessage: resetErrorMessage
-          ? null
-          : errorMessage ?? this.errorMessage,
+      hasPermission: hasPermission ?? this.hasPermission,
+      isSupported: isSupported ?? this.isSupported,
+      errorMessage:
+          clearError ? null : (errorMessage ?? this.errorMessage),
+      lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
 
   factory PedometerState.initial() {
-    return PedometerState(
-      entity: PedometerEntity.initial(),
-      permissionGranted: false,
-      isLoading: false,
-      hasError: false,
-      isInitialized: false,
+    return const PedometerState(
+      totalSteps: 0,
+      goal: 10000,
+      isLoading: true,
+      hasPermission: false,
+      isSupported: true,
       errorMessage: null,
+      lastUpdated: null,
     );
   }
 }
