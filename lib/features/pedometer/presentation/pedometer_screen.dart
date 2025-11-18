@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../widgets/step_gauge.dart';
 import 'pedometer_controller.dart';
 import 'pedometer_state.dart';
 
@@ -12,19 +11,10 @@ class PedometerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(pedometerControllerProvider);
     final controller = ref.read(pedometerControllerProvider.notifier);
-    final canRefresh =
-        state.isSupported && state.hasPermission && !state.isLoading;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pedometer'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh today\'s steps',
-            onPressed: canRefresh ? controller.refreshSteps : null,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
+        title: const Text('Step Tracker'),
         bottom: state.isLoading
             ? const PreferredSize(
                 preferredSize: Size.fromHeight(4),
@@ -32,18 +22,15 @@ class PedometerScreen extends ConsumerWidget {
               )
             : null,
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: _buildBody(context, state, controller, canRefresh),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: _buildBody(context, state, controller),
+          ),
+        ),
       ),
-      floatingActionButton:
-          state.errorMessage != null && state.hasPermission && canRefresh
-              ? FloatingActionButton.extended(
-                  onPressed: controller.refreshSteps,
-                  icon: const Icon(Icons.restart_alt),
-                  label: const Text('Retry'),
-                )
-              : null,
     );
   }
 
@@ -51,133 +38,137 @@ class PedometerScreen extends ConsumerWidget {
     BuildContext context,
     PedometerState state,
     PedometerController controller,
-    bool canRefresh,
   ) {
     if (!state.isSupported) {
-      return _ErrorView(
-        icon: Icons.directions_walk_outlined,
-        message:
-            state.errorMessage ?? 'This platform does not support step tracking.',
+      return _InfoMessage(
+        icon: Icons.watch_off_outlined,
+        title: 'Step tracking unavailable',
+        message: state.errorMessage ??
+            'Your device does not expose any step data that we can read.',
       );
     }
 
     if (!state.hasPermission) {
-      return _ErrorView(
-        icon: Icons.lock_outline,
+      return _InfoMessage(
+        icon: Icons.directions_walk,
+        title: 'Enable motion tracking',
         message: state.errorMessage ??
-            'We need motion permissions before we can show your steps.',
-        actionLabel: 'Grant permission',
+            'Grant motion and fitness permissions so we can read today\'s steps.',
+        actionLabel: 'Allow access',
         onAction: controller.requestPermission,
       );
     }
 
-    if (state.isLoading && state.totalSteps == 0) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return RefreshIndicator(
-      onRefresh: canRefresh ? controller.refreshSteps : () async {},
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: canRefresh ? controller.refreshSteps : null,
-                  child: AbsorbPointer(
-                    absorbing: !canRefresh,
-                    child: StepGauge(
-                      progress: state.progress,
-                      steps: state.totalSteps,
-                      goal: state.goal.toDouble(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                _StatsCard(state: state),
-                if (state.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      state.errorMessage!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: Theme.of(context).colorScheme.error),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
-      ),
+    return _TrackingView(
+      state: state,
+      onRefresh: () => controller.refreshSteps(),
     );
   }
 }
 
-class _StatsCard extends StatelessWidget {
-  const _StatsCard({required this.state});
+class _TrackingView extends StatelessWidget {
+  const _TrackingView({required this.state, required this.onRefresh});
 
   final PedometerState state;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lastUpdated = state.lastUpdated == null
-        ? 'Waiting for data'
+        ? 'Waiting for data from the pedometer'
         : 'Updated at ${TimeOfDay.fromDateTime(state.lastUpdated!).format(context)}';
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Today\'s steps', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${state.totalSteps}',
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    )),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Daily goal: ${state.goal}'),
-                    Text(lastUpdated, style: theme.textTheme.bodySmall),
-                  ],
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Today's steps",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: Text(
+              '${state.totalSteps}',
+              key: ValueKey(state.totalSteps),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.displayLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            lastUpdated,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 32),
+          FilledButton.icon(
+            onPressed: state.isLoading ? null : onRefresh,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh now'),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: const [
+                _StatusTile(
+                  icon: Icons.phone_android,
+                  title: 'Device support',
+                  message: 'This device can share step data with Steppify.',
+                ),
+                Divider(height: 1),
+                _StatusTile(
+                  icon: Icons.security,
+                  title: 'Motion permission',
+                  message: 'Permission granted — tracking continues in the background.',
+                ),
+                Divider(height: 1),
+                _StatusTile(
+                  icon: Icons.autorenew,
+                  title: 'Live updates',
+                  message: 'Steps update automatically as we listen to the native pedometer.',
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+          ),
+          if (state.errorMessage != null) ...[
+            const SizedBox(height: 24),
             Text(
-              'Tap the gauge or pull down to refresh once permissions are granted.',
-              style: theme.textTheme.bodySmall,
+              state.errorMessage!,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
+class _InfoMessage extends StatelessWidget {
+  const _InfoMessage({
     required this.icon,
+    required this.title,
     required this.message,
     this.actionLabel,
     this.onAction,
   });
 
   final IconData icon;
+  final String title;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -186,29 +177,53 @@ class _ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: theme.colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 72, color: theme.colorScheme.primary),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: theme.textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          if (actionLabel != null) ...[
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: onAction,
+              child: Text(actionLabel!),
             ),
-            if (actionLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 24),
-                child: ElevatedButton(
-                  onPressed: onAction,
-                  child: Text(actionLabel!),
-                ),
-              ),
           ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+class _StatusTile extends StatelessWidget {
+  const _StatusTile({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: Icon(icon, color: theme.colorScheme.primary),
+      title: Text(title),
+      subtitle: Text(message),
     );
   }
 }
