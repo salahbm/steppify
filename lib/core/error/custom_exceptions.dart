@@ -12,11 +12,11 @@ class AppException implements Exception {
 /// Thrown when an operation fails due to network connectivity issues.
 class NetworkException extends AppException {
   NetworkException(String message, {Object? details})
-      : super(message, details: details);
+    : super(message, details: details);
 }
 
 /// Thrown when a request receives an invalid or unexpected response.
 class ApiException extends AppException {
   ApiException(String message, {Object? details})
-      : super(message, details: details);
+    : super(message, details: details);
 }

@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.0.3
   intl: ^0.20.2
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -62,10 +63,6 @@ flutter:
   generate: true
   assets:
     - lib/l10n/
-  l10n:
-    template-arb-file: app_en.arb
-    arb-dir: lib/l10n
-    output-localization-file: app_localizations.dart
 
   # To add assets to your application, add an assets section, like this:
   # assets:
