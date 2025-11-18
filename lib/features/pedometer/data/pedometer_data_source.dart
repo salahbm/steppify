@@ -66,19 +66,20 @@ class PedometerDataSourceImpl implements PedometerDataSource {
 
   @override
   Future<bool> requestPermission() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
-      return false;
+    if (Platform.isAndroid) {
+      final status = await Permission.activityRecognition.request();
+      return status.isGranted;
+    } else if (Platform.isIOS) {
+      // iOS motion permission is NOT handled by permission_handler.
+      // You need to explicitly check for motion access at OS level.
+      final status = await Permission.sensors.status;
+      if (status.isDenied) {
+        final result = await Permission.sensors.request();
+        return result.isGranted;
+      }
+      return status.isGranted;
     }
-
-    final Permission permission = Platform.isAndroid
-        ? Permission.activityRecognition
-        : Permission.sensors;
-
-    final status = await permission.status;
-    if (status.isGranted) return true;
-
-    final result = await permission.request();
-    return result.isGranted;
+    return false;
   }
 
   @override
@@ -93,13 +94,14 @@ class PedometerDataSourceImpl implements PedometerDataSource {
     const androidConfig = FlutterBackgroundAndroidConfig(
       notificationTitle: 'Steppify is tracking your steps',
       notificationText: 'Tap to return to the app.',
-      notificationImportance: AndroidNotificationImportance.low,
+      notificationImportance: AndroidNotificationImportance.normal,
       enableWifiLock: false,
     );
 
     if (enable) {
-      final initialized =
-          await FlutterBackground.initialize(androidConfig: androidConfig);
+      final initialized = await FlutterBackground.initialize(
+        androidConfig: androidConfig,
+      );
       if (!initialized) return false;
 
       final success = await FlutterBackground.enableBackgroundExecution();

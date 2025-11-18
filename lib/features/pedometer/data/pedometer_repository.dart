@@ -1,4 +1,4 @@
-import 'pedometer_data_source.dart';
+import 'package:steppify/features/pedometer/data/pedometer_data_source.dart';
 
 abstract class PedometerRepository {
   Stream<int> get stepCountStream;
@@ -9,22 +9,23 @@ abstract class PedometerRepository {
 }
 
 class PedometerRepositoryImpl implements PedometerRepository {
-  PedometerRepositoryImpl({required this.dataSource});
-  final PedometerDataSource dataSource;
+  final PedometerDataSource _dataSource;
+
+  PedometerRepositoryImpl(this._dataSource);
 
   @override
-  Stream<int> get stepCountStream => dataSource.stepStream;
+  Stream<int> get stepCountStream => _dataSource.stepStream;
 
   @override
-  Future<void> startListening() => dataSource.startTracking();
+  Future<void> startListening() => _dataSource.startTracking();
 
   @override
-  Future<void> stopListening() => dataSource.stopTracking();
+  Future<void> stopListening() => _dataSource.stopTracking();
 
   @override
-  Future<bool> requestPermission() => dataSource.requestPermission();
+  Future<bool> requestPermission() => _dataSource.requestPermission();
 
   @override
   Future<bool> enableBackgroundUpdates(bool enable) =>
-      dataSource.toggleBackgroundUpdates(enable);
+      _dataSource.toggleBackgroundUpdates(enable);
 }
