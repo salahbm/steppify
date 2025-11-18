@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'pedometer_controller.dart';
-import 'pedometer_state.dart';
+import '../data/pedometer_state.dart';
 
 class PedometerScreen extends ConsumerWidget {
   const PedometerScreen({super.key});
@@ -43,7 +43,8 @@ class PedometerScreen extends ConsumerWidget {
       return _InfoMessage(
         icon: Icons.watch_off_outlined,
         title: 'Step tracking unavailable',
-        message: state.errorMessage ??
+        message:
+            state.errorMessage ??
             'Your device does not expose any step data that we can read.',
       );
     }
@@ -52,17 +53,15 @@ class PedometerScreen extends ConsumerWidget {
       return _InfoMessage(
         icon: Icons.directions_walk,
         title: 'Enable motion tracking',
-        message: state.errorMessage ??
+        message:
+            state.errorMessage ??
             'Grant motion and fitness permissions so we can read today\'s steps.',
         actionLabel: 'Allow access',
-        onAction: controller.requestPermission,
+        onAction: controller.retry,
       );
     }
 
-    return _TrackingView(
-      state: state,
-      onRefresh: () => controller.refreshSteps(),
-    );
+    return _TrackingView(state: state, onRefresh: () => controller.retry());
   }
 }
 
@@ -131,13 +130,15 @@ class _TrackingView extends StatelessWidget {
                 _StatusTile(
                   icon: Icons.security,
                   title: 'Motion permission',
-                  message: 'Permission granted — tracking continues in the background.',
+                  message:
+                      'Permission granted — tracking continues in the background.',
                 ),
                 Divider(height: 1),
                 _StatusTile(
                   icon: Icons.autorenew,
                   title: 'Live updates',
-                  message: 'Steps update automatically as we listen to the native pedometer.',
+                  message:
+                      'Steps update automatically as we listen to the native pedometer.',
                 ),
               ],
             ),
@@ -195,10 +196,7 @@ class _InfoMessage extends StatelessWidget {
           ),
           if (actionLabel != null) ...[
             const SizedBox(height: 24),
-            FilledButton(
-              onPressed: onAction,
-              child: Text(actionLabel!),
-            ),
+            FilledButton(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
       ),
