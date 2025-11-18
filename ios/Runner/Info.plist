@@ -43,7 +43,9 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+        <key>UIApplicationSupportsIndirectInputEvents</key>
+        <true/>
+        <key>NSMotionUsageDescription</key>
+        <string>Steppify uses your motion data to measure your steps and keep motivational goals up to date.</string>
 </dict>
 </plist>
