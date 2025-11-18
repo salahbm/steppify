@@ -2,7 +2,7 @@ import '../data/pedometer_repository.dart';
 
 class PedometerUseCase {
   PedometerUseCase({required PedometerRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   final PedometerRepository _repository;
 
@@ -34,7 +34,4 @@ class PedometerUseCase {
     }
     return selected;
   }
-
-  // TODO(dev): Add additional use cases such as syncing with cloud storage or
-  // sending push notifications when a user hits streaks.
 }

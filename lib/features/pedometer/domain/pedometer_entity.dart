@@ -1,4 +1,3 @@
-/// Entity used across the presentation and domain layers.
 class PedometerEntity {
   const PedometerEntity({
     required this.totalSteps,

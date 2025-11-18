@@ -1,72 +1,43 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:pedometer/pedometer.dart';
-
-/// Contract for providing step-count updates from the platform.
 abstract class PedometerDataSource {
-  Stream<int> get stepCountStream;
-
-  Future<void> startListening();
-
-  Future<void> stopListening();
-
+  Stream<int> get stepStream;
+  Future<void> startTracking();
+  Future<void> stopTracking();
   Future<bool> requestPermission();
+  Future<bool> toggleBackgroundUpdates(bool enable);
 
-  Future<bool> enableBackgroundUpdates(bool enable);
+  void dispose();
 }
 
-/// Default implementation that relies on the `pedometer` plugin.
 class PedometerDataSourceImpl implements PedometerDataSource {
-  PedometerDataSourceImpl();
-
-  StreamSubscription<StepCount>? _subscription;
-  final StreamController<int> _stepController =
-      StreamController<int>.broadcast();
+  // TODO: Implement using a plugin such as 'pedometer' or 'health'
+  @override
+  Stream<int> get stepStream => Stream.periodic(
+    const Duration(seconds: 1),
+    (count) => count * 5, // Simulated step count
+  );
 
   @override
-  Stream<int> get stepCountStream => _stepController.stream;
-
-  @override
-  Future<void> startListening() async {
-    await _subscription?.cancel();
-    _subscription = Pedometer.stepCountStream.listen(
-      (event) => _stepController.add(event.steps),
-      onError: (error) => _stepController.addError(error),
-      cancelOnError: false,
-    );
+  Future<void> startTracking() async {
+    // Simulate
   }
 
   @override
-  Future<void> stopListening() async {
-    await _subscription?.cancel();
-    _subscription = null;
+  Future<void> stopTracking() async {
+    // Simulate
   }
 
   @override
   Future<bool> requestPermission() async {
-    // TODO(dev): Integrate permission_handler or a custom channel to request
-    // ACTIVITY_RECOGNITION on Android and Motion & Fitness / HealthKit on iOS.
-    if (Platform.isIOS) {
-      // Placeholder for HealthKit/Motion Fitness request.
-      return true;
-    }
-    if (Platform.isAndroid) {
-      // Placeholder for ACTIVITY_RECOGNITION request.
-      return true;
-    }
+    // Simulate permission granted
     return true;
   }
 
   @override
-  Future<bool> enableBackgroundUpdates(bool enable) async {
-    // TODO(dev): Wire up background services/isolates to keep listening even
-    // when the application is terminated.
+  Future<bool> toggleBackgroundUpdates(bool enable) async {
+    // Simulate toggle success
     return enable;
   }
 
-  void dispose() {
-    _subscription?.cancel();
-    _stepController.close();
-  }
+  @override
+  void dispose() {}
 }

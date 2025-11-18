@@ -48,7 +48,8 @@ class StepGauge extends StatelessWidget {
                     child: CircularProgressIndicator(
                       value: animatedValue,
                       strokeWidth: 14,
-                      backgroundColor: theme.colorScheme.surfaceVariant,
+                      backgroundColor:
+                          theme.colorScheme.surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         theme.colorScheme.primary,
                       ),

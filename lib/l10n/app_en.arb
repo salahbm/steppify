@@ -3,6 +3,10 @@
   "title": "Steppify",
   "greeting": "Welcome to Steppify",
   "settings": "Settings",
-  "theme": "Dark Theme",
-  "language": "Language"
+  "dark_mode": "Dark Theme",
+  "light_mode": "Light Theme",
+  "language": "Language",
+  "locale_en": "English",
+  "locale_ko": "Korean",
+  "go_to_pedometer": "Go to Pedometer"
 }

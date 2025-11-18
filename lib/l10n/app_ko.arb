@@ -4,5 +4,10 @@
   "greeting": "스텝피파이에 오신 것을 환영합니다",
   "settings": "설정",
   "theme": "다크 테마",
-  "language": "언어"
+  "dark_mode": "다크 모드",
+  "light_mode": "라이트 모드",
+  "language": "언어",
+  "locale_en": "영어",
+  "locale_ko": "한국어",
+  "go_to_pedometer": "Pedometer로 이동"
 }
