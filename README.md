@@ -102,6 +102,75 @@ Enable desktop targets: [https://docs.flutter.dev/desktop](https://docs.flutter.
 
 ---
 
+## Real Step Tracking Integration
+
+Steppify now ships with a production-ready pedometer stack powered by the
+[`pedometer`](https://pub.dev/packages/pedometer),
+[`permission_handler`](https://pub.dev/packages/permission_handler), and
+[`flutter_background`](https://pub.dev/packages/flutter_background) plugins.
+
+### Dependencies
+
+`pubspec.yaml`
+
+```yaml
+dependencies:
+  pedometer: ^4.0.1
+  permission_handler: ^11.3.1
+  flutter_background: ^1.2.0
+```
+
+Fetch the packages with `flutter pub get`.
+
+### Android configuration
+
+`android/app/src/main/AndroidManifest.xml`
+
+```xml
+<manifest ...>
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <application ...>
+        ...
+    </application>
+</manifest>
+```
+
+These permissions allow the app to access the motion sensors and keep the
+background service alive while step tracking.
+
+### iOS configuration
+
+`ios/Runner/Info.plist`
+
+```xml
+<key>NSMotionUsageDescription</key>
+<string>Steppify uses your motion data to count steps and update goals.</string>
+```
+
+Background step updates are handled by CoreMotion, so no extra switches are
+required beyond the privacy description.
+
+### Data layer wiring
+
+- `PedometerDataSourceImpl` (in `lib/features/pedometer/data`) connects to the
+  native pedometer stream, manages permissions, and optionally enables Android
+  foreground services for background tracking.
+- `PedometerRepositoryImpl` exposes this stream to the domain layer.
+- The `pedometerProvider` file registers the data source and repository with
+  Riverpod so the existing controller/UI continue to function without changes.
+
+### Bonus ideas
+
+- Persist the step totals to a backend (e.g., Supabase/Firebase) on interval by
+  listening to the same stream in a background isolate.
+- Use `flutter_local_notifications` with Riverpod listeners to schedule a
+  congratulatory notification whenever `PedometerEntity.totalSteps` meets or
+  exceeds the user’s daily goal.
+
+---
+
 ## Folder Descriptions
 
 - **android**, **ios**, **macos**, **linux**, **windows**: Platform-specific code required to run the Flutter app on different platforms.
