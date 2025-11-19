@@ -18,8 +18,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get theme => 'Dark Theme';
+  String get dark_mode => 'Dark Theme';
+
+  @override
+  String get light_mode => 'Light Theme';
 
   @override
   String get language => 'Language';
+
+  @override
+  String get locale_en => 'English';
+
+  @override
+  String get locale_ko => 'Korean';
+
+  @override
+  String get go_to_pedometer => 'Go to Pedometer';
 }

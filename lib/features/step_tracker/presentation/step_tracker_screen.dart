@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cm_pedometer/cm_pedometer.dart';
-import 'package:live_activities/live_activities.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:steppify/features/step_tracker/data/live_activity_permission.dart';
 import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
 
 class StepTrackerScreen extends StatefulWidget {
@@ -13,10 +13,11 @@ class StepTrackerScreen extends StatefulWidget {
 }
 
 class _StepTrackerScreenState extends State<StepTrackerScreen> {
+  final _liveActivityService = LiveActivityService();
+
   int _todaySteps = 0;
   int _sinceOpenSteps = 0;
   int _sinceBootSteps = 0;
-
   String _status = 'unknown';
 
   StreamSubscription<CMPedometerData>? _todaySub;
@@ -25,19 +26,75 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   StreamSubscription<CMPedestrianStatus>? _statusSub;
 
   bool _trackingPaused = false;
-
   bool _loading = false;
   String? _error;
   final List<String> _logs = [];
-  final _live = LiveActivities();
-
-  String? _activityId;
-  StepLiveActivityModel? _activityModel;
+  bool _liveActivityActive = false;
 
   late DateTime _startOfDay;
   late DateTime _screenOpenedAt;
-
   bool _initialized = false;
+
+  // --------------------------------------------------------------------------
+  // Live Activity update
+  // --------------------------------------------------------------------------
+  Future<void> _updateLiveActivity() async {
+    if (!_liveActivityActive) return;
+
+    try {
+      await _liveActivityService.updateLiveActivity(
+        data: StepLiveActivityModel(
+          todaySteps: _todaySteps,
+          sinceOpenSteps: _sinceOpenSteps,
+          sinceBootSteps: _sinceBootSteps,
+          status: _status,
+        ),
+      );
+    } catch (e) {
+      _log("Live Activity update error: $e");
+    }
+  }
+
+  Future<void> _startLiveActivity() async {
+    if (_liveActivityActive) {
+      _log("Live Activity already active");
+      return;
+    }
+
+    try {
+      await _liveActivityService.startLiveActivity(
+        data: StepLiveActivityModel(
+          todaySteps: _todaySteps,
+          sinceOpenSteps: _sinceOpenSteps,
+          sinceBootSteps: _sinceBootSteps,
+          status: _status,
+        ),
+      );
+      setState(() => _liveActivityActive = true);
+      _log("Live Activity started");
+    } catch (e) {
+      _log("Failed to start Live Activity: $e");
+    }
+  }
+
+  Future<void> _endLiveActivity() async {
+    if (!_liveActivityActive) {
+      _log("Live Activity not active");
+      return;
+    }
+
+    try {
+      await _liveActivityService.endLiveActivity();
+      setState(() => _liveActivityActive = false);
+      _log("Live Activity stopped");
+    } catch (e) {
+      _log("Failed to stop Live Activity: $e");
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Lifecycle
+  // --------------------------------------------------------------------------
 
   @override
   void didChangeDependencies() {
@@ -48,8 +105,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     _startOfDay = DateTime(now.year, now.month, now.day);
     _screenOpenedAt = now;
 
-    _live.init(appGroupId: 'group.com.steppify', urlScheme: 'steppify');
-
     _initialized = true;
     _initialize();
   }
@@ -57,8 +112,13 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   @override
   void dispose() {
     _stopStreams();
+    // Don't end Live Activity on dispose - let it persist
     super.dispose();
   }
+
+  // --------------------------------------------------------------------------
+  // Logs
+  // --------------------------------------------------------------------------
 
   void _log(String msg) {
     final ts = DateTime.now().toIso8601String();
@@ -119,17 +179,15 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   }
 
   // --------------------------------------------------------------------------
-  // MANUAL CONTROL – Start & Pause
+  // STREAM CONTROL
   // --------------------------------------------------------------------------
 
   void _startAllStreams() {
     if (_trackingPaused) return;
-
     _startTodayStream();
     _startSinceOpenStream();
     _startSinceBootStream();
     _startStatusStream();
-
     _log("Streams started");
   }
 
@@ -141,115 +199,55 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     _log("Streams stopped");
   }
 
-  void pauseTracking() {
-    setState(() {
-      _trackingPaused = true;
-    });
-
-    _stopStreams();
-    _log("Tracking paused");
-  }
-
-  void startTracking() {
-    setState(() {
-      _trackingPaused = false;
-    });
-
-    _log("Tracking resumed");
-
-    // DO NOT reset sinceOpen time
-    // DO NOT reset counters
-    // Just resume streams
-
-    _stopStreams();
-    _startAllStreams();
-  }
-
   // --------------------------------------------------------------------------
-  // EXISTING STREAMS (unchanged logic)
+  // STREAMS
   // --------------------------------------------------------------------------
 
   void _startTodayStream() {
     _todaySub?.cancel();
-
     _todaySub = CMPedometer.stepCounterFirstStream(from: _startOfDay).listen((
       data,
     ) {
       _todaySteps = data.numberOfSteps.toInt();
-      _updateLiveActivity();
       setState(() {});
+      _updateLiveActivity();
     }, onError: (e) => _log("Today stream error: $e"));
   }
 
   void _startSinceOpenStream() {
     _openSub?.cancel();
-
     _openSub = CMPedometer.stepCounterSecondStream(from: _screenOpenedAt)
         .listen((data) {
           _sinceOpenSteps = data.numberOfSteps.toInt();
           setState(() {});
+          _updateLiveActivity();
         }, onError: (e) => _log("Since-open stream error: $e"));
   }
 
   void _startSinceBootStream() {
     _bootSub?.cancel();
-
     _bootSub = CMPedometer.stepCounterThirdStream().listen((data) {
       _sinceBootSteps = data.numberOfSteps.toInt();
       setState(() {});
+      _updateLiveActivity();
     }, onError: (e) => _log("Since-boot stream error: $e"));
   }
 
   void _startStatusStream() {
     _statusSub?.cancel();
-
     _statusSub = CMPedometer.pedestrianStatusStream.listen(
-      (CMPedestrianStatus event) {
+      (event) {
         _status = event.status;
         setState(() {});
+        _updateLiveActivity();
       },
       onError: (e) {
         _status = 'unknown';
         _log("Status stream error: $e");
         setState(() {});
+        _updateLiveActivity();
       },
     );
-  }
-
-  // --------------------------------------------------------------------------
-  // LIVE ACTIVITY
-  // --------------------------------------------------------------------------
-  Future<void> _startLiveActivity() async {
-    await Permission.notification.request();
-
-    await _live.endAllActivities();
-
-    _activityModel = StepLiveActivityModel(
-      todaySteps: _todaySteps,
-      sinceOpenSteps: _sinceOpenSteps,
-      sinceBootSteps: _sinceBootSteps,
-      status: _status,
-    );
-
-    _activityId = await _live.createActivity(
-      DateTime.now().millisecondsSinceEpoch.toString(),
-      _activityModel!.toMap(),
-    );
-
-    _log("Live Activity started: $_activityId");
-  }
-
-  Future<void> _updateLiveActivity() async {
-    if (_activityId == null || _activityModel == null) return;
-
-    _activityModel = _activityModel!.copyWith(
-      todaySteps: _todaySteps,
-      sinceOpenSteps: _sinceOpenSteps,
-      sinceBootSteps: _sinceBootSteps,
-      status: _status,
-    );
-
-    await _live.updateActivity(_activityId!, _activityModel!.toMap());
   }
 
   // --------------------------------------------------------------------------
@@ -271,14 +269,14 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text('Step Tracker')),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text('Step Tracker')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: Text("Step Tracker")),
+        appBar: AppBar(title: const Text("Step Tracker")),
         body: Center(
           child: Text(
             _error!,
@@ -324,29 +322,36 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
               children: [
                 ElevatedButton(
                   onPressed: _trackingPaused ? startTracking : null,
-                  child: const Text("Start"),
+                  child: const Text("Start Tracking"),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: !_trackingPaused ? pauseTracking : null,
-                  child: const Text("Pause"),
+                  child: const Text("Pause Tracking"),
                 ),
               ],
             ),
-            Row(
+
+            const SizedBox(height: 12),
+
+            Column(
               children: [
                 ElevatedButton(
-                  onPressed: _startLiveActivity,
-                  child: const Text("Start Live"),
+                  onPressed: !_liveActivityActive ? _startLiveActivity : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Start Live Activity"),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () async {
-                    await _live.endAllActivities();
-                    _activityId = null;
-                    setState(() {});
-                  },
-                  child: const Text("Stop Live"),
+                  onPressed: _liveActivityActive ? _endLiveActivity : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Stop Live Activity"),
                 ),
               ],
             ),
@@ -364,5 +369,18 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         ),
       ),
     );
+  }
+
+  void pauseTracking() {
+    setState(() => _trackingPaused = true);
+    _stopStreams();
+    _log("Tracking paused");
+  }
+
+  void startTracking() {
+    setState(() => _trackingPaused = false);
+    _log("Tracking resumed");
+    _stopStreams();
+    _startAllStreams();
   }
 }

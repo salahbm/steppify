@@ -18,8 +18,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settings => '설정';
 
   @override
-  String get theme => '다크 테마';
+  String get dark_mode => '다크 모드';
+
+  @override
+  String get light_mode => '라이트 모드';
 
   @override
   String get language => '언어';
+
+  @override
+  String get locale_en => '영어';
+
+  @override
+  String get locale_ko => '한국어';
+
+  @override
+  String get go_to_pedometer => 'Pedometer로 이동';
 }
