@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cm_pedometer/cm_pedometer.dart';
+import 'package:live_activities/live_activities.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
 
 class StepTrackerScreen extends StatefulWidget {
   const StepTrackerScreen({super.key});
@@ -27,6 +29,10 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   bool _loading = false;
   String? _error;
   final List<String> _logs = [];
+  final _live = LiveActivities();
+
+  String? _activityId;
+  StepLiveActivityModel? _activityModel;
 
   late DateTime _startOfDay;
   late DateTime _screenOpenedAt;
@@ -41,6 +47,8 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     final now = DateTime.now();
     _startOfDay = DateTime(now.year, now.month, now.day);
     _screenOpenedAt = now;
+
+    _live.init(appGroupId: 'group.com.steppify', urlScheme: 'steppify');
 
     _initialized = true;
     _initialize();
@@ -168,6 +176,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       data,
     ) {
       _todaySteps = data.numberOfSteps.toInt();
+      _updateLiveActivity();
       setState(() {});
     }, onError: (e) => _log("Today stream error: $e"));
   }
@@ -205,6 +214,42 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
         setState(() {});
       },
     );
+  }
+
+  // --------------------------------------------------------------------------
+  // LIVE ACTIVITY
+  // --------------------------------------------------------------------------
+  Future<void> _startLiveActivity() async {
+    await Permission.notification.request();
+
+    await _live.endAllActivities();
+
+    _activityModel = StepLiveActivityModel(
+      todaySteps: _todaySteps,
+      sinceOpenSteps: _sinceOpenSteps,
+      sinceBootSteps: _sinceBootSteps,
+      status: _status,
+    );
+
+    _activityId = await _live.createActivity(
+      DateTime.now().millisecondsSinceEpoch.toString(),
+      _activityModel!.toMap(),
+    );
+
+    _log("Live Activity started: $_activityId");
+  }
+
+  Future<void> _updateLiveActivity() async {
+    if (_activityId == null || _activityModel == null) return;
+
+    _activityModel = _activityModel!.copyWith(
+      todaySteps: _todaySteps,
+      sinceOpenSteps: _sinceOpenSteps,
+      sinceBootSteps: _sinceBootSteps,
+      status: _status,
+    );
+
+    await _live.updateActivity(_activityId!, _activityModel!.toMap());
   }
 
   // --------------------------------------------------------------------------
@@ -285,6 +330,23 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
                 ElevatedButton(
                   onPressed: !_trackingPaused ? pauseTracking : null,
                   child: const Text("Pause"),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: _startLiveActivity,
+                  child: const Text("Start Live"),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () async {
+                    await _live.endAllActivities();
+                    _activityId = null;
+                    setState(() {});
+                  },
+                  child: const Text("Stop Live"),
                 ),
               ],
             ),
