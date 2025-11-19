@@ -58,6 +58,20 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              // Navigate to Step Tracker Button
+              ElevatedButton.icon(
+                icon: const Icon(Icons.directions_walk),
+                label: Text(l('go_to_step_tracker')),
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.stepTracker),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
