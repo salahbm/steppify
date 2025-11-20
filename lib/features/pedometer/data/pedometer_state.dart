@@ -1,6 +1,7 @@
 class PedometerState {
   final bool isLoading;
   final int totalSteps;
+  final int sinceAppLaunch;
   final bool hasPermission;
   final String? errorMessage;
   final DateTime? lastUpdated;
@@ -9,6 +10,7 @@ class PedometerState {
   PedometerState({
     required this.isLoading,
     required this.totalSteps,
+    required this.sinceAppLaunch,
     required this.hasPermission,
     required this.isSupported,
     this.errorMessage,
@@ -18,6 +20,7 @@ class PedometerState {
   factory PedometerState.initial() => PedometerState(
     isLoading: false,
     totalSteps: 0,
+    sinceAppLaunch: 0,
     hasPermission: true,
     isSupported: true,
     lastUpdated: null,
@@ -27,6 +30,7 @@ class PedometerState {
   PedometerState copyWith({
     bool? isLoading,
     int? totalSteps,
+    int? sinceAppLaunch,
     bool? hasPermission,
     String? errorMessage,
     DateTime? lastUpdated,
@@ -36,6 +40,7 @@ class PedometerState {
     return PedometerState(
       isLoading: isLoading ?? this.isLoading,
       totalSteps: totalSteps ?? this.totalSteps,
+      sinceAppLaunch: sinceAppLaunch ?? this.sinceAppLaunch,
       hasPermission: hasPermission ?? this.hasPermission,
       isSupported: isSupported ?? this.isSupported,
       lastUpdated: lastUpdated ?? this.lastUpdated,

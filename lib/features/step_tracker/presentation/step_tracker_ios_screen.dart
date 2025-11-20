@@ -5,20 +5,20 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:steppify/features/step_tracker/data/live_activity_service.dart';
 import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
 
-class StepTrackerScreen extends StatefulWidget {
-  const StepTrackerScreen({super.key});
+class StepTrackerIOSScreen extends StatefulWidget {
+  const StepTrackerIOSScreen({super.key});
 
   @override
-  State<StepTrackerScreen> createState() => _StepTrackerScreenState();
+  State<StepTrackerIOSScreen> createState() => _StepTrackerIOSScreenState();
 }
 
-class _StepTrackerScreenState extends State<StepTrackerScreen> {
+class _StepTrackerIOSScreenState extends State<StepTrackerIOSScreen> {
   final _liveActivityService = LiveActivityService();
 
   int _todaySteps = 0;
   int _sinceOpenSteps = 0;
   int _sinceBootSteps = 0;
-  String _status = 'idle';
+  String _status = 'stationary';
 
   StreamSubscription<CMPedometerData>? _todaySub;
   StreamSubscription<CMPedometerData>? _openSub;
@@ -34,6 +34,113 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   late DateTime _startOfDay;
   late DateTime _screenOpenedAt;
   bool _initialized = false;
+
+  // --------------------------------------------------------------------------
+  // Lifecycle
+  // --------------------------------------------------------------------------
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+
+    final now = DateTime.now();
+    _startOfDay = DateTime(now.year, now.month, now.day);
+    _screenOpenedAt = now;
+
+    _initialized = true;
+    _initialize();
+  }
+
+  @override
+  void dispose() {
+    _stopStreams();
+    // Don't end Live Activity on dispose - let it persist
+    super.dispose();
+  }
+
+  // --------------------------------------------------------------------------
+  // Logs
+  // --------------------------------------------------------------------------
+
+  void _log(String msg) {
+    final ts = DateTime.now().toIso8601String();
+    setState(() => _logs.add('$ts - $msg'));
+  }
+
+  // --------------------------------------------------------------------------
+  // INITIALIZE
+  // --------------------------------------------------------------------------
+
+  Future<void> _initialize() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _logs.clear();
+      _todaySteps = 0;
+      _sinceOpenSteps = 0;
+      _sinceBootSteps = 0;
+      _status = 'stationary';
+    });
+
+    final granted = await _requestPermission();
+    if (!granted) {
+      setState(() {
+        _loading = false;
+        _error = "Permission not granted";
+      });
+      return;
+    }
+
+    final available = await CMPedometer.isStepCountingAvailable();
+
+    if (!available) {
+      setState(() {
+        _loading = false;
+        _error = "Step counting unavailable";
+      });
+    }
+
+    _startAllStreams();
+
+    setState(() => _loading = false);
+  }
+
+  Future<bool> _requestPermission() async {
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      return true;
+    }
+    bool granted = await Permission.activityRecognition.isGranted;
+
+    if (!granted) {
+      granted =
+          await Permission.activityRecognition.request() ==
+          PermissionStatus.granted;
+    }
+
+    return granted;
+  }
+
+  // --------------------------------------------------------------------------
+  // STREAM CONTROL
+  // --------------------------------------------------------------------------
+
+  void _startAllStreams() {
+    if (_trackingPaused) return;
+    _startTodayStream();
+    _startSinceOpenStream();
+    _startSinceBootStream();
+    _startStatusStream();
+    _log("Streams started");
+  }
+
+  void _stopStreams() {
+    _todaySub?.cancel();
+    _openSub?.cancel();
+    _bootSub?.cancel();
+    _statusSub?.cancel();
+    _log("Streams stopped");
+  }
 
   // --------------------------------------------------------------------------
   // Live Activity update
@@ -91,113 +198,6 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
     } catch (e) {
       _log("Failed to stop Live Activity: $e");
     }
-  }
-
-  // --------------------------------------------------------------------------
-  // Lifecycle
-  // --------------------------------------------------------------------------
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_initialized) return;
-
-    final now = DateTime.now();
-    _startOfDay = DateTime(now.year, now.month, now.day);
-    _screenOpenedAt = now;
-
-    _initialized = true;
-    _initialize();
-  }
-
-  @override
-  void dispose() {
-    _stopStreams();
-    // Don't end Live Activity on dispose - let it persist
-    super.dispose();
-  }
-
-  // --------------------------------------------------------------------------
-  // Logs
-  // --------------------------------------------------------------------------
-
-  void _log(String msg) {
-    final ts = DateTime.now().toIso8601String();
-    setState(() => _logs.add('$ts - $msg'));
-  }
-
-  // --------------------------------------------------------------------------
-  // INITIALIZE
-  // --------------------------------------------------------------------------
-
-  Future<void> _initialize() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-      _logs.clear();
-      _todaySteps = 0;
-      _sinceOpenSteps = 0;
-      _sinceBootSteps = 0;
-      _status = 'idle';
-    });
-
-    final available = await CMPedometer.isStepCountingAvailable();
-    _log("Step counting available: $available");
-
-    if (!available) {
-      setState(() {
-        _loading = false;
-        _error = "Step counting unavailable";
-      });
-      return;
-    }
-
-    final granted = await _requestPermission();
-    if (!granted) {
-      setState(() {
-        _loading = false;
-        _error = "Permission not granted";
-      });
-      return;
-    }
-
-    _startAllStreams();
-
-    setState(() => _loading = false);
-  }
-
-  Future<bool> _requestPermission() async {
-    if (Theme.of(context).platform == TargetPlatform.iOS) {
-      _log("iOS uses system Motion & Fitness permission");
-      return true;
-    }
-
-    var status = await Permission.activityRecognition.status;
-    if (status.isGranted) return true;
-
-    status = await Permission.activityRecognition.request();
-    return status.isGranted;
-  }
-
-  // --------------------------------------------------------------------------
-  // STREAM CONTROL
-  // --------------------------------------------------------------------------
-
-  void _startAllStreams() {
-    if (_trackingPaused) return;
-    _startTodayStream();
-    _startSinceOpenStream();
-    _startSinceBootStream();
-    _startStatusStream();
-    _log("Streams started");
-  }
-
-  void _stopStreams() {
-    _todaySub?.cancel();
-    _openSub?.cancel();
-    _bootSub?.cancel();
-    _statusSub?.cancel();
-    _log("Streams stopped");
   }
 
   // --------------------------------------------------------------------------

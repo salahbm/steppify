@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:steppify/injection_container.dart';
@@ -49,22 +51,12 @@ class HomeScreen extends ConsumerWidget {
               ElevatedButton.icon(
                 icon: const Icon(Icons.directions_walk),
                 label: Text(l('go_to_pedometer')),
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.pedometer),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Platform.isAndroid
+                      ? AppRoutes.stepTrackerAndroid
+                      : AppRoutes.stepTrackerIOS,
                 ),
-              ),
-              const SizedBox(height: 12),
-              // Navigate to Step Tracker Button
-              ElevatedButton.icon(
-                icon: const Icon(Icons.directions_walk),
-                label: Text(l('go_to_step_tracker')),
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.stepTracker),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
