@@ -40,7 +40,8 @@ struct LiveActivityWidgetLiveActivity: Widget {
                 }
             }
             .padding(16)
-            .background(Color(UIColor.systemBackground))
+            .activityBackgroundTint(Color.black.opacity(0.25))
+            .activitySystemActionForegroundColor(Color.white)
 
         } dynamicIsland: { context in
             DynamicIsland {

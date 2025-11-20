@@ -49,6 +49,8 @@ import ActivityKit
                     pushType: nil
                 )
                 print("✅ Live Activity started with ID: \(activity?.id ?? "unknown")")
+                print("📍 Activity Content: \(activity?.content.state ?? state)")
+                print("📍 Activity Attributes: \(activity?.attributes ?? attributes)")
                 DispatchQueue.main.async { completion?(true, nil) }
             } catch {
                 print("❌ Failed to start Live Activity: \(error.localizedDescription)")
