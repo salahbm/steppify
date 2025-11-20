@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cm_pedometer/cm_pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:steppify/features/step_tracker/data/live_activity_permission.dart';
+import 'package:steppify/features/step_tracker/data/live_activity_service.dart';
 import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
 
 class StepTrackerScreen extends StatefulWidget {
@@ -18,7 +18,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
   int _todaySteps = 0;
   int _sinceOpenSteps = 0;
   int _sinceBootSteps = 0;
-  String _status = 'unknown';
+  String _status = 'idle';
 
   StreamSubscription<CMPedometerData>? _todaySub;
   StreamSubscription<CMPedometerData>? _openSub;
@@ -47,9 +47,10 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
           todaySteps: _todaySteps,
           sinceOpenSteps: _sinceOpenSteps,
           sinceBootSteps: _sinceBootSteps,
-          status: _status,
+          status: 'manual',
         ),
       );
+      _log("Live Activity updated");
     } catch (e) {
       _log("Live Activity update error: $e");
     }
@@ -67,7 +68,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
           todaySteps: _todaySteps,
           sinceOpenSteps: _sinceOpenSteps,
           sinceBootSteps: _sinceBootSteps,
-          status: _status,
+          status: 'start',
         ),
       );
       setState(() => _liveActivityActive = true);
@@ -137,7 +138,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
       _todaySteps = 0;
       _sinceOpenSteps = 0;
       _sinceBootSteps = 0;
-      _status = 'unknown';
+      _status = 'idle';
     });
 
     final available = await CMPedometer.isStepCountingAvailable();
@@ -319,6 +320,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
             const SizedBox(height: 20),
 
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
                   onPressed: _trackingPaused ? startTracking : null,
@@ -335,6 +337,7 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
             const SizedBox(height: 12),
 
             Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ElevatedButton(
                   onPressed: !_liveActivityActive ? _startLiveActivity : null,
@@ -344,7 +347,16 @@ class _StepTrackerScreenState extends State<StepTrackerScreen> {
                   ),
                   child: const Text("Start Live Activity"),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: _liveActivityActive ? _updateLiveActivity : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Update Live Activity (Manual)"),
+                ),
+                const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _liveActivityActive ? _endLiveActivity : null,
                   style: ElevatedButton.styleFrom(

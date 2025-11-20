@@ -3,27 +3,57 @@ import ActivityKit
 
 @objc class ActivityController: NSObject {
 
-    @available(iOS 16.1, *)
+    @available(iOS 16.2, *)
     static var activity: Activity<StepActivityAttributes>?
 
-    @objc static func startActivity(data: [String: Any]? = nil) {
-        guard #available(iOS 16.2, *) else { return }
+    @objc static func startActivity(
+        data: [String: Any]? = nil,
+        completion: ((Bool, String?) -> Void)? = nil
+    ) {
+        print("🔵 startActivity called with data: \(String(describing: data))")
+
+        guard #available(iOS 16.2, *) else {
+            print("❌ iOS version not supported")
+            completion?(false, "iOS 16.2+ required")
+            return
+        }
+
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            print("❌ Live Activities are not enabled in Settings")
+            completion?(false, "Live Activities are disabled. Please enable them in Settings.")
+            return
+        }
 
         let attributes = StepActivityAttributes()
 
+        let todaySteps = (data?["today"] as? Int) ?? 0
+        let sinceOpenSteps = (data?["open"] as? Int) ?? 0
+        let sinceBootSteps = (data?["boot"] as? Int) ?? 0
+        let status = (data?["status"] as? String) ?? "unknown"
+
+        print("📊 Creating state: today=\(todaySteps), open=\(sinceOpenSteps), boot=\(sinceBootSteps), status=\(status)")
+
         let state = StepActivityAttributes.ContentState(
-            todaySteps: (data?["today"] as? Int) ?? 0,
-            sinceOpenSteps: (data?["open"] as? Int) ?? 0,
-            sinceBootSteps: (data?["boot"] as? Int) ?? 0,
-            status: (data?["status"] as? String) ?? "unknown"
+            todaySteps: todaySteps,
+            sinceOpenSteps: sinceOpenSteps,
+            sinceBootSteps: sinceBootSteps,
+            status: status
         )
 
         Task {
-            activity = try? Activity<StepActivityAttributes>.request(
-                attributes: attributes,
-                content: .init(state: state, staleDate: nil),
-                pushType: nil
-            )
+            do {
+                print("🚀 Requesting Live Activity...")
+                activity = try Activity<StepActivityAttributes>.request(
+                    attributes: attributes,
+                    content: .init(state: state, staleDate: nil),
+                    pushType: nil
+                )
+                print("✅ Live Activity started with ID: \(activity?.id ?? "unknown")")
+                DispatchQueue.main.async { completion?(true, nil) }
+            } catch {
+                print("❌ Failed to start Live Activity: \(error.localizedDescription)")
+                DispatchQueue.main.async { completion?(false, error.localizedDescription) }
+            }
         }
     }
 
@@ -33,7 +63,17 @@ import ActivityKit
         boot: Int,
         status: String
     ) {
-        guard #available(iOS 16.1, *) else { return }
+        guard #available(iOS 16.2, *) else {
+            print("❌ iOS version not supported for update")
+            return
+        }
+
+        guard let currentActivity = activity else {
+            print("⚠️ No active Live Activity to update")
+            return
+        }
+
+        print("🔄 Updating Live Activity ID: \(currentActivity.id)")
 
         let updated = StepActivityAttributes.ContentState(
             todaySteps: today,
@@ -43,19 +83,32 @@ import ActivityKit
         )
 
         Task {
-            await activity?.update(using: updated)
+            do {
+                await currentActivity.update(using: updated)
+                print("✅ Live Activity updated: today=\(today), open=\(open), boot=\(boot), status=\(status)")
+            } catch {
+                print("❌ Failed to update Live Activity: \(error.localizedDescription)")
+            }
         }
     }
 
     @objc static func endActivity() {
-        if #available(iOS 16.2, *) {
-            Task {
-                await activity?.end(dismissalPolicy: .immediate)
-            }
-        } else if #available(iOS 16.1, *) {
-            Task {
-                await activity?.end()
-            }
+        print("🛑 endActivity called")
+
+        guard #available(iOS 16.2, *) else {
+            print("❌ iOS version not supported for end")
+            return
+        }
+
+        guard let currentActivity = activity else {
+            print("⚠️ No active Live Activity to end")
+            return
+        }
+
+        Task {
+            await currentActivity.end(dismissalPolicy: .immediate)
+            print("✅ Live Activity ended successfully")
+            activity = nil
         }
     }
 }

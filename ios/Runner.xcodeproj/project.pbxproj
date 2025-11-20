@@ -15,9 +15,13 @@
 		4E0EE41B2ECDA0C70034A8FA /* ActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0EE4192ECDA0C70034A8FA /* ActivityController.swift */; };
 		4E0EE43D2ECDA3B40034A8FA /* StepActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0EE43C2ECDA3B40034A8FA /* StepActivityAttributes.swift */; };
 		4E0EE43E2ECDA3B40034A8FA /* StepActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0EE43C2ECDA3B40034A8FA /* StepActivityAttributes.swift */; };
-		4EA597782ECD9B5F00540DBC /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597772ECD9B5F00540DBC /* WidgetKit.framework */; };
-		4EA5977A2ECD9B5F00540DBC /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597792ECD9B5F00540DBC /* SwiftUI.framework */; };
 		4EA597872ECD9B6000540DBC /* LiveActivityWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4EA597762ECD9B5F00540DBC /* LiveActivityWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4EC257F12ECEE34900D966D3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597792ECD9B5F00540DBC /* SwiftUI.framework */; };
+		4EC257F22ECEE34900D966D3 /* SwiftUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597792ECD9B5F00540DBC /* SwiftUI.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4EC257F42ECEE34A00D966D3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597772ECD9B5F00540DBC /* WidgetKit.framework */; };
+		4EC257F52ECEE34A00D966D3 /* WidgetKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4EA597772ECD9B5F00540DBC /* WidgetKit.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4EEF6AD72ECDC528001026F8 /* Flutter.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4EEF6AD62ECDC528001026F8 /* Flutter.xcframework */; };
+		4EEF6AD82ECDC528001026F8 /* Flutter.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4EEF6AD62ECDC528001026F8 /* Flutter.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -54,12 +58,25 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4EC257F32ECEE34900D966D3 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				4EC257F22ECEE34900D966D3 /* SwiftUI.framework in Embed Frameworks */,
+				4EC257F52ECEE34A00D966D3 /* WidgetKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				4EEF6AD82ECDC528001026F8 /* Flutter.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -81,6 +98,7 @@
 		4EA597792ECD9B5F00540DBC /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		4EA597B82ECD9DA100540DBC /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		4EA597DD2ECD9E7600540DBC /* LiveActivityWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiveActivityWidgetExtension.entitlements; sourceTree = "<group>"; };
+		4EEF6AD62ECDC528001026F8 /* Flutter.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:S8QB4VV633:FLUTTER.IO LLC"; lastKnownFileType = wrapper.xcframework; name = Flutter.xcframework; path = ../../../../development/flutter/bin/cache/artifacts/engine/ios/Flutter.xcframework; sourceTree = "<group>"; };
 		5D9F292C93711C990F80A995 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		6A3144012A02E5AB43569CD4 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -118,8 +136,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4EA5977A2ECD9B5F00540DBC /* SwiftUI.framework in Frameworks */,
-				4EA597782ECD9B5F00540DBC /* WidgetKit.framework in Frameworks */,
+				4EC257F12ECEE34900D966D3 /* SwiftUI.framework in Frameworks */,
+				4EC257F42ECEE34A00D966D3 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,6 +153,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EEF6AD72ECDC528001026F8 /* Flutter.xcframework in Frameworks */,
 				B886C605085C1C14C02DB500 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -219,6 +238,7 @@
 		FB73DD305E8F232319C5765F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4EEF6AD62ECDC528001026F8 /* Flutter.xcframework */,
 				6A3144012A02E5AB43569CD4 /* Pods_Runner.framework */,
 				79F733AA1139629AB9D40690 /* Pods_RunnerTests.framework */,
 				4EA597772ECD9B5F00540DBC /* WidgetKit.framework */,
@@ -256,6 +276,7 @@
 				4EA597722ECD9B5F00540DBC /* Sources */,
 				4EA597732ECD9B5F00540DBC /* Frameworks */,
 				4EA597742ECD9B5F00540DBC /* Resources */,
+				4EC257F32ECEE34900D966D3 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -688,7 +709,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -730,7 +751,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -741,7 +762,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.steppify.LiveActivityWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.steppify.LiveActivityWidgetExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -769,7 +790,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LiveActivityWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidget;
+				INFOPLIST_KEY_CFBundleDisplayName = LiveActivityWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -19,19 +19,39 @@ import Flutter
     channel.setMethodCallHandler { call, result in
       switch call.method {
 
-      case "requestPushNotificationPermission":
+      case "requestForNotificationPermission":
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-        print("SWIFT: notification permission granted = \(granted)")
-        result(granted)
-      }
+          print("SWIFT: notification permission granted = \(granted)")
+          result(granted)
+        }
+
+      case "registerDevice":
+        // This is for API testing - just acknowledge the call
+        print("SWIFT: registerDevice called")
+        result(nil)
 
       case "startActivity":
         if #available(iOS 16.2, *) {
           ActivityController.startActivity(
             data: call.arguments as? [String: Any]
-          )
+          ) { success, error in
+            if success {
+              result(nil)
+            } else {
+              result(FlutterError(
+                code: "LIVE_ACTIVITY_ERROR",
+                message: error ?? "Failed to start Live Activity",
+                details: nil
+              ))
+            }
+          }
+        } else {
+          result(FlutterError(
+            code: "VERSION_ERROR",
+            message: "iOS 16.2+ required for Live Activities",
+            details: nil
+          ))
         }
-        result(nil)
 
       case "updateActivity":
         if #available(iOS 16.2, *) {
