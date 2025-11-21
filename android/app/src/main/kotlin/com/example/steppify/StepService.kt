@@ -62,7 +62,6 @@ class StepService : Service() {
     }
 
     private fun buildNotification(): Notification {
-        // Create intent to open app when notification is tapped
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -70,72 +69,63 @@ class StepService : Service() {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        // Format status for display
+    
+        val statusEmoji = when (status.lowercase()) {
+            "walking" -> "🚶"
+            "stopped", "stationary" -> "🧘"
+            else -> "📊"
+        }
+        
         val statusText = when (status.lowercase()) {
-            "walking" -> "🚶 Walking"
-            "stopped", "stationary" -> "🧘 Stationary"
-            "manual" -> "🔄 Updated"
-            "start" -> "▶️ Active"
-            else -> "📊 Tracking"
+            "walking" -> "Walking"
+            "stopped", "stationary" -> "Stationary"
+            else -> "Tracking"
         }
 
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            // REQUIRED: Content title (no emojis for better compatibility)
-            .setContentTitle("Steppify - Step Tracking")
-            
-            // REQUIRED: Content text showing current steps
-            .setContentText("$today steps today • $statusText")
-            
-            // REQUIRED: Small icon
-            .setSmallIcon(android.R.drawable.ic_menu_compass)
-            
-            // REQUIRED: Ongoing flag for Live Updates
-            .setOngoing(true)
-            
-            // REQUIRED: Visibility public for lock screen
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            
-            // Content intent
-            .setContentIntent(pendingIntent)
-            
-            // REQUIRED: Use BigTextStyle (one of the allowed styles)
-            .setStyle(
-                NotificationCompat.BigTextStyle()
-                    .setBigContentTitle("Step Tracking Active")
-                    .bigText(
-                        "📊 Today: $today steps\n" +
-                        "🔓 Since Open: $open steps\n" +
-                        "⚡ Since Boot: $boot steps\n" +
-                        "$statusText"
-                    )
-            )
-            
-            // REQUIRED: Priority HIGH for Live Updates
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            
-            // Category for better system handling
-            .setCategory(NotificationCompat.CATEGORY_STATUS)
-            
-            // Don't show timestamp
-            .setShowWhen(false)
-            
-            // NOT colorized (requirement for Live Updates)
-            .setColorized(false)
+        // Use InboxStyle for always-expanded, multi-line display
+        val inboxStyle = NotificationCompat.InboxStyle()
+            .setBigContentTitle("$statusEmoji Step Tracking - $statusText")
+            .addLine("")
+            .addLine("📊 Today: $today steps")
+            .addLine("🔓 Since Open: $open steps")
+            .addLine("⚡ Since Boot: $boot steps")
+            .addLine("")
+            .setSummaryText("Live Updates")
 
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Step Tracking")
+            .setContentText("$today steps today")
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setOngoing(true)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)  // HIGH for always expanded
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setShowWhen(false)
+            .setColorized(false)
+            .setSilent(true)
+            .setOnlyAlertOnce(true)
+            .setStyle(inboxStyle)
+    
         return builder.build()
     }
+    
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Step Live Activity",
-                NotificationManager.IMPORTANCE_HIGH
+                "Step Live Updates",
+                NotificationManager.IMPORTANCE_HIGH  // HIGH for always expanded Live Updates
             ).apply {
-                description = "Live step tracking notification"
+                description = "Real-time step tracking with Live Updates"
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 setShowBadge(false)
+                // Explicitly disable sound and vibration for silent updates
+                setSound(null, null)
+                enableVibration(false)
+                enableLights(false)
             }
 
             val manager = getSystemService(NotificationManager::class.java)

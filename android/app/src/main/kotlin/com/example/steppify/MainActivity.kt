@@ -8,10 +8,15 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "step_activity_channel"
+    private val NOTIFICATION_CHANNEL = "com.example.steppify/notification"
     private var serviceActive = false
+    private lateinit var notificationHelper: NotificationHelper
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // Initialize notification helper
+        notificationHelper = NotificationHelper(this)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -82,6 +87,52 @@ class MainActivity : FlutterActivity() {
                     result.success(null)
                 }
 
+                else -> {
+                    result.notImplemented()
+                }
+            }
+        }
+        
+        // New notification channel for health package implementation
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NOTIFICATION_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "startNotification" -> {
+                    try {
+                        val args = call.arguments as? Map<String, Any>
+                        val todaySteps = args?.get("todaySteps") as? Int ?: 0
+                        val sinceOpenSteps = args?.get("sinceOpenSteps") as? Int ?: 0
+                        val status = args?.get("status") as? String ?: "unknown"
+                        
+                        notificationHelper.showNotification(todaySteps, sinceOpenSteps, status)
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("NOTIFICATION_ERROR", "Failed to start notification: ${e.message}", null)
+                    }
+                }
+                
+                "updateNotification" -> {
+                    try {
+                        val args = call.arguments as? Map<String, Any>
+                        val todaySteps = args?.get("todaySteps") as? Int ?: 0
+                        val sinceOpenSteps = args?.get("sinceOpenSteps") as? Int ?: 0
+                        val status = args?.get("status") as? String ?: "unknown"
+                        
+                        notificationHelper.showNotification(todaySteps, sinceOpenSteps, status)
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("NOTIFICATION_ERROR", "Failed to update notification: ${e.message}", null)
+                    }
+                }
+                
+                "stopNotification" -> {
+                    try {
+                        notificationHelper.cancelNotification()
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("NOTIFICATION_ERROR", "Failed to stop notification: ${e.message}", null)
+                    }
+                }
+                
                 else -> {
                     result.notImplemented()
                 }
