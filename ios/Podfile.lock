@@ -4,8 +4,6 @@ PODS:
   - device_info_plus (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - flutter_health_connect (0.0.1):
-    - Flutter
   - health (13.2.1):
     - Flutter
   - pedometer (0.0.1):
@@ -20,7 +18,6 @@ DEPENDENCIES:
   - cm_pedometer (from `.symlinks/plugins/cm_pedometer/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
-  - flutter_health_connect (from `.symlinks/plugins/flutter_health_connect/ios`)
   - health (from `.symlinks/plugins/health/ios`)
   - pedometer (from `.symlinks/plugins/pedometer/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -33,8 +30,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
-  flutter_health_connect:
-    :path: ".symlinks/plugins/flutter_health_connect/ios"
   health:
     :path: ".symlinks/plugins/health/ios"
   pedometer:
@@ -48,7 +43,6 @@ SPEC CHECKSUMS:
   cm_pedometer: 6106ec8dfdb2b1762a8bbb45a0727fecccee0ec1
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_health_connect: 830a8d6ba97dcccf5bef6fd1dbcf5c8293386dd2
   health: e310387222e199d4b3261337490a67aaff6d18eb
   pedometer: 1c5eaab0c6bce8eb7651f7095553b5081c9d06ed
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d

@@ -118,14 +118,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4EA5978C2ECD9B6000540DBC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		4EA5978C2ECD9B6000540DBC /* Exceptions for "LiveActivityWidget" folder in "LiveActivityWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 4EA597752ECD9B5F00540DBC /* LiveActivityWidgetExtension */;
 		};
-		4EBE3F8A2ECEF94D0080E826 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		4EBE3F8A2ECEF94D0080E826 /* Exceptions for "LiveActivityWidget" folder in "Runner" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				LiveActivityWidgetLiveActivity.swift,
@@ -135,7 +135,15 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4EA5977B2ECD9B5F00540DBC /* LiveActivityWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4EBE3F8A2ECEF94D0080E826 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 4EA5978C2ECD9B6000540DBC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiveActivityWidget; sourceTree = "<group>"; };
+		4EA5977B2ECD9B5F00540DBC /* LiveActivityWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4EBE3F8A2ECEF94D0080E826 /* Exceptions for "LiveActivityWidget" folder in "Runner" target */,
+				4EA5978C2ECD9B6000540DBC /* Exceptions for "LiveActivityWidget" folder in "LiveActivityWidgetExtension" target */,
+			);
+			path = LiveActivityWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -347,7 +355,6 @@
 				};
 			};
 			buildConfigurationList = 97C146E91CF9000F007C117D /* Build configuration list for PBXProject "Runner" */;
-			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -355,6 +362,7 @@
 				Base,
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";

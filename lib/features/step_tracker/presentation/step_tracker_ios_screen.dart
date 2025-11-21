@@ -4,6 +4,8 @@ import 'package:cm_pedometer/cm_pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:steppify/features/step_tracker/data/live_activity_service.dart';
 import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
+import 'package:steppify/features/step_tracker/presentation/utils/status_helpers.dart';
+import 'package:steppify/features/step_tracker/presentation/widgets/widgets.dart';
 
 class StepTrackerIOSScreen extends StatefulWidget {
   const StepTrackerIOSScreen({super.key});
@@ -251,133 +253,129 @@ class _StepTrackerIOSScreenState extends State<StepTrackerIOSScreen> {
     );
   }
 
-  // --------------------------------------------------------------------------
-  // UI
-  // --------------------------------------------------------------------------
-
-  Color _statusColor() {
-    switch (_status) {
-      case 'walking':
-        return Colors.green;
-      case 'stopped':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Step Tracker')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return const LoadingScreen();
     }
 
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text("Step Tracker")),
         body: Center(
-          child: Text(
-            _error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 80, color: Colors.red),
+              const SizedBox(height: 20),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _initialize,
+                icon: const Icon(Icons.refresh),
+                label: const Text("Retry"),
+              ),
+            ],
           ),
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Step Tracker")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Today: $_todaySteps steps',
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            Text('Since open: $_sinceOpenSteps'),
-            Text('Since boot: $_sinceBootSteps'),
-            const SizedBox(height: 20),
-
-            Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _statusColor(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text('Status: $_status'),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: _trackingPaused ? startTracking : null,
-                  child: const Text("Start Tracking"),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: !_trackingPaused ? pauseTracking : null,
-                  child: const Text("Pause Tracking"),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ElevatedButton(
-                  onPressed: !_liveActivityActive ? _startLiveActivity : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("Start Live Activity"),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: _liveActivityActive ? _updateLiveActivity : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("Update Live Activity (Manual)"),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: _liveActivityActive ? _endLiveActivity : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("Stop Live Activity"),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            const Text("Logs:", style: TextStyle(fontWeight: FontWeight.bold)),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _logs.length,
-                itemBuilder: (_, i) =>
-                    Text(_logs[i], style: const TextStyle(fontSize: 12)),
+      appBar: AppBar(
+        title: const Text("Step Tracker"),
+        actions: [
+          Icon(
+            StatusHelpers.getStatusIcon(_status),
+            color: StatusHelpers.getStatusColor(_status),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.deepPurple.shade50, Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Main step counter
+              StepCounterCard(
+                steps: _todaySteps,
+                title: "Today's Steps",
+                status: _status,
+                statusIcon: StatusHelpers.getStatusIcon(_status),
+                statusColor: StatusHelpers.getStatusColor(_status),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 16),
+
+              // Secondary counters row
+              Row(
+                children: [
+                  Expanded(
+                    child: SecondaryStepCard(
+                      label: 'Since Open',
+                      steps: _sinceOpenSteps,
+                      icon: Icons.timer,
+                      iconColor: Colors.deepPurple,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SecondaryStepCard(
+                      label: 'Since Boot',
+                      steps: _sinceBootSteps,
+                      icon: Icons.phone_iphone,
+                      iconColor: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Status indicator
+              StatusIndicator(
+                status: _status,
+                color: StatusHelpers.getStatusColor(_status),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Tracking controls
+              TrackingControlButtons(
+                isPaused: _trackingPaused,
+                onStart: startTracking,
+                onPause: pauseTracking,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Live Activity controls
+              LiveActivityControlButtons(
+                isActive: _liveActivityActive,
+                onStart: _startLiveActivity,
+                onUpdate: _updateLiveActivity,
+                onEnd: _endLiveActivity,
+              ),
+
+              const SizedBox(height: 20),
+
+              // Logs
+              Expanded(child: ActivityLogViewer(logs: _logs)),
+            ],
+          ),
         ),
       ),
     );

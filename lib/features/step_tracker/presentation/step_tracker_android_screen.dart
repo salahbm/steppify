@@ -4,6 +4,8 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:steppify/features/step_tracker/presentation/utils/status_helpers.dart';
+import 'package:steppify/features/step_tracker/presentation/widgets/widgets.dart';
 
 class StepTrackerAndroidScreen extends StatefulWidget {
   const StepTrackerAndroidScreen({super.key});
@@ -372,40 +374,6 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
   }
 
   // ---------------------------------------------------------------------------
-  // UI HELPERS
-  // ---------------------------------------------------------------------------
-
-  Color _statusColor() {
-    switch (_status) {
-      case 'walking':
-        return Colors.green;
-      case 'stationary':
-        return Colors.orange;
-      case 'active':
-        return Colors.blue;
-      case 'error':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _statusIcon() {
-    switch (_status) {
-      case 'walking':
-        return Icons.directions_walk;
-      case 'stationary':
-        return Icons.pause_circle_outline;
-      case 'active':
-        return Icons.check_circle;
-      case 'error':
-        return Icons.error_outline;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
   // CONTROLS
   // ---------------------------------------------------------------------------
 
@@ -471,127 +439,16 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("Step Tracker"),
-          backgroundColor: Colors.deepPurple,
-        ),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-              Text("Initializing step tracker..."),
-              SizedBox(height: 10),
-              Text(
-                "Connecting to device sensors",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const LoadingScreen();
     }
 
     if (_status == "error") {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text("Step Tracker"),
-          backgroundColor: Colors.red,
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 80, color: Colors.red),
-                const SizedBox(height: 20),
-                const Text(
-                  "Sensor Not Available",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _logs.isNotEmpty
-                      ? _logs.last.split('] ').last
-                      : "Unknown error",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 32),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Troubleshooting:",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStep("1", "Check device has step counter sensor"),
-                        _buildStep(
-                          "2",
-                          "Settings > Apps > Steppify > Permissions",
-                        ),
-                        _buildStep(
-                          "3",
-                          "Enable 'Physical activity' permission",
-                        ),
-                        _buildStep("4", "Restart the app"),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _retryInitialization,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Retry"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  "Debug Logs:",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  constraints: const BoxConstraints(maxHeight: 200),
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _logs.length,
-                        itemBuilder: (_, i) => Text(
-                          _logs[i],
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontFamily: 'monospace',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      return ErrorScreen(
+        errorMessage: _logs.isNotEmpty
+            ? _logs.last.split('] ').last
+            : "Unknown error",
+        logs: _logs,
+        onRetry: _retryInitialization,
       );
     }
 
@@ -600,7 +457,10 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
         title: const Text("Step Tracker"),
         backgroundColor: Colors.deepPurple,
         actions: [
-          Icon(_statusIcon(), color: _statusColor()),
+          Icon(
+            StatusHelpers.getStatusIcon(_status),
+            color: StatusHelpers.getStatusColor(_status),
+          ),
           const SizedBox(width: 16),
         ],
       ),
@@ -618,86 +478,17 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Date info banner
-              Card(
-                color: Colors.blue.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        color: Colors.blue,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "Today: $_currentDate | Resets at midnight",
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              DateInfoBanner(currentDate: _currentDate),
 
               const SizedBox(height: 16),
 
               // Main step counter - TODAY'S STEPS
-              Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.deepPurple.shade400,
-                        Colors.deepPurple.shade600,
-                      ],
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Today\'s Steps',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _todaySteps.toString(),
-                        style: const TextStyle(
-                          fontSize: 56,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(_statusIcon(), color: _statusColor(), size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            _status.toUpperCase(),
-                            style: TextStyle(
-                              color: _statusColor(),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              StepCounterCard(
+                steps: _todaySteps,
+                title: "Today's Steps",
+                status: _status,
+                statusIcon: StatusHelpers.getStatusIcon(_status),
+                statusColor: StatusHelpers.getStatusColor(_status),
               ),
 
               const SizedBox(height: 16),
@@ -706,78 +497,20 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
               Row(
                 children: [
                   Expanded(
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.timer,
-                              color: Colors.deepPurple,
-                              size: 20,
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Since Open',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _sinceOpenSteps.toString(),
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    child: SecondaryStepCard(
+                      label: 'Since Open',
+                      steps: _sinceOpenSteps,
+                      icon: Icons.timer,
+                      iconColor: Colors.deepPurple,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            const Icon(
-                              Icons.phone_android,
-                              color: Colors.grey,
-                              size: 20,
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Since Reboot',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _stepsSinceReboot.toString(),
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    child: SecondaryStepCard(
+                      label: 'Since Reboot',
+                      steps: _stepsSinceReboot,
+                      icon: Icons.phone_android,
+                      iconColor: Colors.grey,
                     ),
                   ),
                 ],
@@ -786,198 +519,36 @@ class _StepTrackerAndroidScreenState extends State<StepTrackerAndroidScreen>
               const SizedBox(height: 20),
 
               // Controls
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _trackingPaused ? _startTracking : null,
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text("Start"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: !_trackingPaused ? _pauseTracking : null,
-                      icon: const Icon(Icons.pause),
-                      label: const Text("Pause"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              TrackingControlButtons(
+                isPaused: _trackingPaused,
+                onStart: _startTracking,
+                onPause: _pauseTracking,
               ),
 
               const SizedBox(height: 12),
 
               // Notification controls
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: !_notificationActive
-                          ? _startNotification
-                          : null,
-                      icon: const Icon(Icons.notifications_active),
-                      label: const Text("Show Notification"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _notificationActive ? _stopNotification : null,
-                      icon: const Icon(Icons.notifications_off),
-                      label: const Text("Hide Notification"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              NotificationControlButtons(
+                isActive: _notificationActive,
+                onStart: _startNotification,
+                onStop: _stopNotification,
               ),
 
               const SizedBox(height: 12),
 
               // Reset buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _resetSessionSteps,
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text(
-                        "Reset Session",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade600,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _manualDayReset,
-                      icon: const Icon(Icons.restart_alt, size: 18),
-                      label: const Text(
-                        "Reset Day",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade800,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              ResetControlButtons(
+                onResetSession: _resetSessionSteps,
+                onResetDay: _manualDayReset,
               ),
 
               const SizedBox(height: 20),
 
               // Logs
-              const Text(
-                "Activity Logs",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: ListView.builder(
-                      reverse: true,
-                      itemCount: _logs.length,
-                      itemBuilder: (_, i) {
-                        final reversedIndex = _logs.length - 1 - i;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text(
-                            _logs[reversedIndex],
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
+              Expanded(child: ActivityLogViewer(logs: _logs)),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildStep(String number, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.deepPurple,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
-        ],
       ),
     );
   }
