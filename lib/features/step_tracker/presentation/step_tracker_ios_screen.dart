@@ -4,8 +4,8 @@ import 'package:cm_pedometer/cm_pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:steppify/features/step_tracker/data/live_activity_service.dart';
 import 'package:steppify/features/step_tracker/data/steps_live_model.dart';
-import 'package:steppify/features/step_tracker/presentation/utils/status_helpers.dart';
-import 'package:steppify/features/step_tracker/presentation/widgets/widgets.dart';
+import 'package:steppify/features/step_tracker/utils/status_helpers.dart';
+import 'package:steppify/features/step_tracker/widgets/widgets.dart';
 
 class StepTrackerIOSScreen extends StatefulWidget {
   const StepTrackerIOSScreen({super.key});

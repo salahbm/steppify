@@ -4,8 +4,8 @@ import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:steppify/features/step_tracker/presentation/utils/status_helpers.dart';
-import 'package:steppify/features/step_tracker/presentation/widgets/widgets.dart';
+import 'package:steppify/features/step_tracker/utils/status_helpers.dart';
+import 'package:steppify/features/step_tracker/widgets/widgets.dart';
 
 class StepTrackerAndroidScreen extends StatefulWidget {
   const StepTrackerAndroidScreen({super.key});
