@@ -1,51 +1,27 @@
 PODS:
-  - cm_pedometer (0.0.1):
-    - Flutter
-  - device_info_plus (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
-  - health (13.2.1):
-    - Flutter
-  - pedometer (0.0.1):
-    - Flutter
-  - permission_handler_apple (9.3.0):
+  - pedometer_2 (0.0.1):
     - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
 
 DEPENDENCIES:
-  - cm_pedometer (from `.symlinks/plugins/cm_pedometer/ios`)
-  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
-  - health (from `.symlinks/plugins/health/ios`)
-  - pedometer (from `.symlinks/plugins/pedometer/ios`)
-  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+  - pedometer_2 (from `.symlinks/plugins/pedometer_2/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
-  cm_pedometer:
-    :path: ".symlinks/plugins/cm_pedometer/ios"
-  device_info_plus:
-    :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
-  health:
-    :path: ".symlinks/plugins/health/ios"
-  pedometer:
-    :path: ".symlinks/plugins/pedometer/ios"
-  permission_handler_apple:
-    :path: ".symlinks/plugins/permission_handler_apple/ios"
+  pedometer_2:
+    :path: ".symlinks/plugins/pedometer_2/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
-  cm_pedometer: 6106ec8dfdb2b1762a8bbb45a0727fecccee0ec1
-  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  health: e310387222e199d4b3261337490a67aaff6d18eb
-  pedometer: 1c5eaab0c6bce8eb7651f7095553b5081c9d06ed
-  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  pedometer_2: dbedf4f42eb698358d1f6231ef97e29ae6b0411f
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 
 PODFILE CHECKSUM: 9970039ab2525195c07a918dc64f4b4ce46f3b99
